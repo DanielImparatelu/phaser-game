@@ -1,0 +1,576 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+	<meta charset="UTF-8" />
+	<title>game2</title>
+	<script src="plugins/phaser/phaser.js"></script>
+	<script src="plugins/jquery-3.4.1.min.js"></script>
+	<script src="plugins/bootstrap/js/bootstrap.js"></script>
+	<link rel="stylesheet" href="plugins/bootstrap/css/bootstrap.css" />
+	<link rel="stylesheet" href="plugins/bootstrap/css/bootstrap-grid.css" />
+	<link rel="stylesheet" href="plugins/bootstrap/css/bootstrap-reboot.css" />
+	<style type="text/css">
+		canvas {
+			/* margin-left: 15%;
+			margin-right: 15%; */
+		}
+	</style>
+
+	<div class="row">
+		<div class="col-md-12">
+			<!-- <h1> game 2 </h1> -->
+		</div>
+	</div>
+</head>
+
+<body>
+
+	<script type="text/javascript">
+		var config = {
+			type: Phaser.AUTO,
+			width: 1080,
+			height: 890,
+			pixelArt: true,
+			physics: {
+				default: 'arcade',
+				arcade: {
+					gravity: {
+						y: 0
+					},
+					debug: true
+				}
+			},
+			scene: {
+				preload: preload,
+				create: create,
+				update: update
+			}
+		};
+		var game = new Phaser.Game(config);
+
+		var dude;
+		var platforms;
+		var flash;
+		var layer;
+
+		var bgtile;
+		var sign;
+		var enemies;
+		var onScreenText;
+		var playerPosText;
+
+		var fantastic;
+		var wait;
+		var ward;
+		var whisper1;
+		var whisper2;
+		var whisper3;
+		var whisper4;
+		var hey;
+		var walk;
+		var death;
+		var lavafloor;
+
+		var platform1, platform2, platform3, platform4, platform5, platform6, platform7, platform8, platform9, platform10;
+		var movingPlatform1, movingPlatform2, movingPlatform3, movingPlatform4, movingPlatform5, movingPlatform6;
+
+		var cameraWidth;
+		var cameraHeight;
+
+		var physics;
+
+		var leverup1;
+		var allPlatforms = [];
+		var stoppers;
+		var spider;
+	//	var gameOver = false;
+		//add an object to store all the numbers used, like gracity and velocity for both enemy and player
+		//and use that in place of hardcoded values
+		function preload() {
+			var progressBar = this.add.graphics();
+			var progressBox = this.add.graphics();
+			progressBox.fillStyle(0x222222, 0.8);
+			progressBox.fillRect(380, 270, 320, 50);
+
+			var width = this.cameras.main.width;
+			var height = this.cameras.main.height;
+			var loadingText = this.make.text({
+				x: width / 2,
+				y: height / 2 - 50,
+				text: 'Loading...',
+				style: {
+					font: '20px monospace',
+					fill: '#ffffff'
+				}
+			});
+			loadingText.setOrigin(0.5, 0.5);
+
+			var percentText = this.make.text({
+			x: width / 2,
+			y: height / 2 - 5,
+			text: '0%',
+			style: {
+				font: '18px monospace',
+				fill: '#ffffff'
+				}
+			});
+			percentText.setOrigin(0.5, 0.5);
+
+			var assetText = this.make.text({
+				x: width / 2,
+				y: height / 2 + 50,
+				text: '',
+				style: {
+					font: '18px monospace',
+					fill: '#ffffff'
+				}
+			});
+			assetText.setOrigin(0.5, 0.5);
+		//	this.load.addFile('spidergif', 'assets/animations/spider.gif');
+			this.load.image('spider', 'assets/images/spider2.png');
+			this.load.image('bgtile', 'bgtile.jpg');
+			this.load.image('background', 'assets/lava/background2.png');
+			this.load.image('platformdefault', 'assets/lava/lavaplatform.png');
+			this.load.image('platform400', 'assets/lava/platform4002.png');
+			this.load.image('platform500', 'assets/lava/platform500.png');
+			this.load.image('platform300', 'assets/lava/platform300.png');
+			this.load.image('platform200', 'assets/lava/platform200.png');
+			this.load.image('platform100', 'assets/lava/platform100.png');
+
+			this.load.image('stopper', 'assets/lava/stopper.png');
+			this.load.image('sign', 'assets/lava/sign2.png');
+
+			this.load.image('leverup', 'assets/images/leverup.png');
+			this.load.image('leverdown', 'assets/images/leverdown.png');
+
+			this.load.image('enemy', 'assets/lava/enemy2.png');
+			this.load.spritesheet('dude', 'assets/sprites/dude.png', {
+				frameWidth: 32,
+				frameHeight: 48
+			});
+
+			this.load.spritesheet('lavafloor', 'assets/lava/lavasprite.png', {
+				frameWidth: 320,
+				frameHeight: 100
+			});
+			//scary flash ooo
+			flash =	this.load.image('flash', 'assets/images/blue-flash.png');
+			this.load.image('floor', 'assets/lava/floor.png');
+
+			//audio
+			this.load.audio('fantastic', 'assets/audio/fantastic.mp3');
+			this.load.audio('wait', 'assets/audio/wait.mp3');
+			this.load.audio('ward', 'assets/audio/ward.mp3');
+			this.load.audio('whisper1', 'assets/audio/whisper1.mp3');
+			this.load.audio('whisper2', 'assets/audio/whisper2.mp3');
+			this.load.audio('whisper3', 'assets/audio/whisper3.mp3');
+			this.load.audio('whisper4', 'assets/audio/whisper4.mp3');
+			this.load.audio('hey', 'assets/audio/hey.mp3');
+
+		//	this.load.video('spider', 'assets/video/spider.mp4');
+		//	this.load.video('skull', 'assets/video/skull.mp4');
+
+			this.load.on('progress', function (value) {
+				progressBar.clear();
+				progressBar.fillStyle(0xffffff, 1);
+				progressBar.fillRect(390, 280, 300 * value, 30);
+				percentText.setText(parseInt(value * 100) + '%');
+			});
+
+			this.load.on('fileprogress', function (file) {
+			//	console.log(file.src);
+				assetText.setText('Loading asset: ' + file.key);
+			});
+
+			this.load.on('complete', function () {
+				progressBar.destroy();
+				progressBox.destroy();
+				loadingText.destroy();
+				percentText.destroy();
+				assetText.destroy();
+			});
+		}
+
+
+		function create() {
+			bgtile = this.add.image(400, 300, 'background');
+			this.cameras.main.setBounds(0, 0, 10392, 100);
+			this.physics.world.setBounds(0, 0, 10392, 710);
+
+			cameraHeight = this.cameras.height;
+			cameraWidth = this.cameras.width;
+
+			enemies = this.physics.add.group();
+			stoppers = this.physics.add.staticGroup();
+			physics = this.physics; //get the reference to physics to create lava and enemies or platforms
+			platforms = this.physics.add.group();
+			var floor = platforms.create(400, 775, 'floor');
+
+			sign = this.add.image(400, 560, 'sign').setScale(0.06);
+			var sign2 = this.add.image(1582, 317, 'sign').setScale(0.06);
+
+			leverup1 = this.add.image(1625, 297, 'leverup').setScale(0.09);
+
+			platform1 = createPlatform400(400, 600);
+			platform2 = createPlatform100(1100, 200);
+			platform3 = createPlatform300(700,500);
+			platform4 = createPlatform200(900, 350);
+			platform5 = createPlatform200(1325, 317);
+			platform6 = createPlatform100(1605, 358);
+
+			movingPlatform1 = createMovingPlatform(2300, 300);
+
+			fantastic = this.sound.add('fantastic', { loop: false, volume: 0.2 });
+			wait = this.sound.add('wait', { loop: true, volume: 0.3 });
+			ward = this.sound.add('ward', { loop: true, volume: 0.2 });
+			whisper1 = this.sound.add('whisper1', { loop: false, volume: 0.1 });
+			whisper2 = this.sound.add('whisper2', { loop: false, volume: 0.2 });
+			whisper3 = this.sound.add('whisper3', { loop: false, volume: 0.2 });
+			whisper4 = this.sound.add('whisper4', { loop: false, volume: 0.2 });
+			hey = this.sound.add('hey', {loop: true, volume: 0.2})
+
+			//spider = this.add.image(6659, 138, 'spider').setScale(0.5);
+			//whisper2.play();
+			whisper2.on('complete', function(){
+				fantastic.play();
+			});
+			fantastic.on('complete', function(){
+				hey.play();
+			});
+
+			var frameNames = this.anims.generateFrameNames('lavafloor', {
+                         start: 1, end: 4
+			});
+
+			this.anims.create({ key: 'lavaAnim', frames: frameNames, frameRate: 4, repeat: -1 });
+
+			//player anims
+			this.anims.create({
+				key: 'left',
+				frames: this.anims.generateFrameNumbers('dude', {
+					start: 0,
+					end: 3
+				}),
+				//frames refer to spritesheet frames, between 0 and 3 it will be left facing
+				frameRate: 10, //10 fps
+				repeat: -1 //stop animation
+			});
+			this.anims.create({
+				key: 'turn',
+				frames: [{
+					key: 'dude',
+					frame: 4
+				}],
+				frameRate: 20
+			});
+			this.anims.create({
+				key: 'right',
+				frames: this.anims.generateFrameNumbers('dude', {
+					start: 5,
+					end: 8
+				}),
+				frameRate: 10,
+				repeat: -1
+			});
+
+		
+
+			dude = this.physics.add.sprite(0, 100, 'dude').setScale(1.5);
+			//dude = this.physics.add.sprite(6650, 150, 'dude').setScale(1.5);
+
+
+			wasd = this.input.keyboard.addKeys({
+				up: Phaser.Input.Keyboard.KeyCodes.W,
+				down: Phaser.Input.Keyboard.KeyCodes.S,
+				left: Phaser.Input.Keyboard.KeyCodes.A,
+				right: Phaser.Input.Keyboard.KeyCodes.D,
+				space: Phaser.Input.Keyboard.KeyCodes.SPACE,
+				restart: Phaser.Input.Keyboard.KeyCodes.R,
+				pause: Phaser.Input.Keyboard.KeyCodes.P,
+				action: Phaser.Input.Keyboard.KeyCodes.W
+			});
+			//console.log(Phaser.Input);
+			dude.body.setGravityY(800);
+			dude.setCollideWorldBounds(true); //prevent running outside game window
+
+			this.cameras.main.startFollow(dude, true, 0.08, 0.08);
+			this.cameras.main.setZoom(1);
+			this.physics.add.collider(dude, platforms);
+
+			this.physics.add.collider(enemies, stoppers, hitStopper, null, this);
+			this.physics.add.overlap(dude, sign, showText, null, this);
+
+			this.physics.add.collider(enemies, platforms);
+			this.physics.add.collider(dude, enemies, hitEnemy, null, this);
+
+			onScreenText = this.add.text(16, 16, '', {
+				fontSize: '32px',
+				fill: '#fff'
+			});
+			playerPosText = this.add.text(dude.x+300, 16, '', {
+				fontSize: '32px',
+				fill: '#fff'
+			});
+
+			playerPosText.setScrollFactor(0);
+			createLava(1274, 760);//add 320 to x for continuous lava
+			createLava(2000, 760);
+		}
+
+		function hitStopper(enemies, stoppers){
+			if(enemies.body.touching.right){
+				enemies.setVelocityX(-(enemies.body.velocity.x+50));
+			}
+			else if(enemies.body.touching.left){
+				enemies.setVelocityX(enemies.body.velocity.x+50);
+			}
+		}
+
+		function createLava(x,y){
+			lavafloor = physics.add.sprite(x, y-1, 'lavafloor');
+			var lavafloor2 = physics.add.sprite(x, y+99, 'lavafloor');
+			var lavafloor3 = physics.add.sprite(x+320, y-1, 'lavafloor');
+			var lavafloor4 = physics.add.sprite(x+320, y+99, 'lavafloor');
+
+			lavafloor.body.immovable = true;
+			lavafloor2.body.immovable = true;
+			lavafloor3.body.immovable = true;
+			lavafloor4.body.immovable = true;
+
+			lavafloor2.flipY = true;
+			lavafloor4.flipY=true;
+
+
+			lavafloor.anims.play('lavaAnim');
+			lavafloor2.anims.play('lavaAnim');
+			lavafloor3.anims.play('lavaAnim');
+			lavafloor4.anims.play('lavaAnim');
+
+			this.physics.add.collider(dude, lavafloor, lavaDeath, null, this);
+			this.physics.add.collider(dude, lavafloor2, lavaDeath, null, this);
+			this.physics.add.collider(dude, lavafloor3, lavaDeath, null, this);
+			this.physics.add.collider(dude, lavafloor4, lavaDeath, null, this);
+		//	physics.add.collider(dude, lavafloor, lavaDeath, null, this);
+		}
+
+		function createPlatform100(x,y){
+			var platform = platforms.create(x,y, 'platform100');
+			platform.body.immovable = true;
+			//console.log(x, y)
+			var stopperLeft = stoppers.create(x-40, y-30, 'stopper');
+			var stopperRight = stoppers.create(x+40, y-30, 'stopper');
+			return platform;
+		}
+		function createPlatform200(x,y){
+			var platform = platforms.create(x,y, 'platform200');
+			platform.body.immovable = true;
+			var stopperLeft = stoppers.create(x-90, y-30, 'stopper');
+			var stopperRight = stoppers.create(x+90, y-30, 'stopper');
+			return platform;
+		}
+		function createPlatform300(x,y){
+			var platform = platforms.create(x,y, 'platform300');
+			platform.body.immovable = true;
+			var stopperLeft = stoppers.create(x-140, y-30, 'stopper');
+			var stopperRight = stoppers.create(x+140, y-30, 'stopper');
+			spawnEnemy(platform);
+			return platform;
+		}
+		function createPlatform400(x,y){
+			var platform = platforms.create(x,y, 'platform400');
+			platform.body.immovable = true;
+			var stopperLeft = stoppers.create(x-190, y-30, 'stopper');
+			var stopperRight = stoppers.create(x+190, y-30, 'stopper');
+			spawnEnemy(platform);
+			return platform;
+		}
+
+		function createMovingPlatform(x,y){
+			var stopperLeft = stoppers.create(x-300, y, 'stopper');
+			var stopperRight = stoppers.create(x+300, y, 'stopper');
+			var stopperBottom = stoppers.create(x, y+35, 'stopper');
+			var platform = platforms.create(x, y, 'platform300');
+			platform.body.setGravityY(0);
+			platform.setCollideWorldBounds(true);
+			//platform.body.immovable = true;
+			platform.setVelocityX(50);
+			physics.add.collider(platforms, stoppers, platformHitStopper, null, this);
+			return platform;
+		}
+		function removePlatform(platform){
+			platform.disableBody(true, true);
+		}
+		function platformHitStopper(platform, stopper){
+			if(platform.body.touching.right){
+				platform.setVelocityX(-(platform.body.velocity.x+50));
+			}
+			else if(platform.body.touching.left){
+				platform.setVelocityX(platform.body.velocity.x+50);
+			}
+			if(platform.body.touching.down && platform.body.touching.right){
+				platform.setVelocityX(-(platform.body.velocity.x+50));
+			}
+			else if(platform.body.touching.left && platform.body.touching.down){
+				platform.setVelocityX(platform.body.velocity.x);
+			}
+
+		}
+
+
+		function spawnEnemy(platform){
+			var enemy1;
+			enemy1 = enemies.create(platform.x, platform.y-100, 'enemy');
+			enemy1.setCollideWorldBounds(true);
+			enemy1.setGravityY(500);
+			enemy1.setVelocityX(50);
+		}
+
+		function killEnemy(x,y){ //or reference to the enemy
+
+		}
+
+
+		function showText(text) {
+			onScreenText.setText(text, {
+				fontSize: '32px',
+				fill: '#fff'
+			});
+			onScreenText.setScrollFactor(0);
+		}
+
+		var gmOv;
+		function hitEnemy(dude, enemies) {
+			this.physics.pause();
+			dude.setTint(0xff0000); //colour the player - can i use hex values directly?
+			dude.anims.play('turn');
+			gameOver = true;
+			gmOv = gameOver;
+			flash=this.add.image(550, 450,'flash');
+			setTimeout(function(){
+				flash.destroy();
+			}, 1000)
+			flash.setScrollFactor(0);
+		}
+
+		function lavaDeath(){
+			this.physics.pause();
+			dude.setTint(0xff0000); //colour the player - can i use hex values directly?
+			dude.anims.play('turn');
+			gameOver = true;
+			gmOv = gameOver;
+		//	debugger;
+	//		flash=this.add.image(550, 450,'flash');
+		//	setTimeout(function(){
+		//		flash.destroy();
+		//	}, 600)
+		//	flash.setScrollFactor(0);
+		}
+
+		function scaryFlash() {
+
+		}
+		var isPaused = false;
+		var pos;
+		function update() {
+
+			playerPosText.setText('X: ' + parseInt(dude.x) + '    ' + 'Y: ' + parseInt(dude.y));
+			if ((dude.x >= 380 && dude.x <= 430) && dude.y == 539) {
+				showText("You are Fantastic!");
+				//fantastic.play();
+			} else {
+				showText('');
+			}
+			if ((dude.x >= 1560 && dude.x <= 1600) && dude.y == 297) {
+				showText("Press the up arrow to flip the switch and jump");
+				//fantastic.play();
+			} else {
+				showText('');
+			}
+			if (((dude.x >= 1610 && dude.x <= 1630) && dude.y == 297) && wasd.action.isDown) {
+				leverup1.setTexture('leverdown');
+			} 
+
+			if(dude.x >= 5800 && dude.x <= 5930){
+				whisper2.play();
+			}
+			if (wasd.left.isDown && !gmOv) //if the key is held down not pressed
+			{
+				dude.setVelocityX(-560); //set velocity to add movement //set to 160 or 200 when actually playing
+				dude.anims.play('left', true); //and play the appropriate animation
+			} else if (wasd.right.isDown && !gmOv) {
+				dude.setVelocityX(560); //set to 160 or 200 when actually playing
+				dude.anims.play('right', true);
+			} else {
+				dude.setVelocityX(0);
+
+				dude.anims.play('turn');
+			}
+
+			if (wasd.space.isDown && !gmOv &&  (dude.body.onFloor() || dude.body.touching.down))
+			{
+				dude.setVelocityY(-590);
+			}
+
+			//pause needs changing
+			if (wasd.pause.isDown) {
+				ward.pause();
+				wait.pause();
+				fantastic.pause();
+			//	this.physics.pause();
+				//isPaused = true;
+
+				showText('paused');
+			}
+			else{
+			//	this.physics.resume();
+			}
+
+			//action key
+			if(wasd.action.isDown && dude.x < 1630 && dude.x > 1580){
+				platform6.disableBody(true, true);
+				platform7 = createPlatform100(1900, 396);
+			}
+
+			//for testing
+			if(wasd.up.isDown){
+				dude.setVelocityY(-500);
+				dude.setGravityY(0);
+			}
+			else{
+				dude.setVelocityY(0);
+			}
+			if(wasd.down.isDown){
+				dude.setVelocityY(500);
+				dude.setGravityY(0);
+			}
+			else{
+			//	dude.setVelocityY(0);
+			}
+			if(gmOv){
+				showText("You died\nPress R to restart");
+				if(wasd.restart.isDown){
+				//	this.scene.restart();
+					game.destroy(true, false);
+					game = new Phaser.Game(config);
+					gmOv = false;
+				}
+			}
+			if(isPaused){
+				showText('Game paused\nPress P to continue');
+				if(wasd.pause.isDown){
+					this.physics.resume();
+					showText('');
+				//	ward.resume();
+				//	wait.resume();
+				//	fantastic.resume();
+				}
+			}
+		}
+
+
+	</script>
+
+</body>
+
+</html>
